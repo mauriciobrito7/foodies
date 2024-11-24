@@ -1,7 +1,10 @@
+'use client';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 export function Header() {
+  const path = usePathname();
   return (
     <header className="flex flex-col items-center justify-between gap-4 px-4 py-8 text-white sm:flex-row sm:px-8">
       <Link href="/">
@@ -14,9 +17,12 @@ export function Header() {
         />
       </Link>
       <nav className="flex gap-4 sm:gap-8">
-        <Link href="/meals">Meals</Link>
-        <Link href="/meals/share">Share</Link>
-        <Link href="/community">Community</Link>
+        <Link href="/meals" className={path.startsWith('/meals') ? 'text-orange-200' : ''}>
+          Browse Meals
+        </Link>
+        <Link href="/community" className={path.startsWith('/community') ? 'text-orange-200' : ''}>
+          Foodies Community
+        </Link>
       </nav>
     </header>
   );
