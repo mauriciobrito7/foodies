@@ -1,21 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Montserrat:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: radial-gradient(#282c34, #282c34);
+    --red: #f9572a;
+    --yellow: #ffc905;
+    --neutral-100: #ddd8d8;
+    --neutral-200: #262626;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+html {
+  font-family: 'Quicksand', sans-serif;
 }
 
 body {
-  color: var(--foreground);
+  margin: 0;
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+.header-background {
+  position: absolute;
+  width: 100%;
+  height: 320px;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.not-found,
+.error {
+  margin-top: 5rem;
+  text-align: center;
+}
+
+.not-found h1,
+.error h1 {
+  font-size: 5rem;
+  margin: 0px;
+  font-weight: 900;
+  color: var(--neutral-200);
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--red), var(--yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: cover;
+  background-position: center;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.not-found p,
+.error p {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--neutral-100);
 }

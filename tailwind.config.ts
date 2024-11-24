@@ -10,7 +10,18 @@ export default {
     extend: {
       colors: {
         background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        red: {
+          100: 'var(--red)',
+          200: '#8f3a09',
+        },
+        yellow: {
+          100: 'var(--yellow)',
+        },
+        neutral: {
+          100: 'var(--neutral-100)',
+          200: 'var(--neutral-200)',
+          300: '#59453c',
+        },
       },
     },
   },
