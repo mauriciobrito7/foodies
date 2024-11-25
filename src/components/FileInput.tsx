@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { cloneElement, ReactElement, useRef } from 'react';
+import React, { cloneElement, ReactElement, useRef } from 'react';
 import { CirclePlus, CircleX, Music, Video, File, Image as ImageIcon } from 'lucide-react';
 
 import { clsx, type ClassValue } from 'clsx';
@@ -53,8 +53,8 @@ const ICONS = {
   [FileType.Video]: <Video className="mr-2" size={20} />,
 };
 
-const ErrorMessage = ({ errorMesssage }: { errorMesssage: string }) => (
-  <div className="mt-2 flex">
+const ErrorMessage = ({ errorMesssage, id }: { errorMesssage: string; id?: string }) => (
+  <div id={id} className="mt-2 flex">
     <p className="text-xs text-red-700">{errorMesssage}</p>
   </div>
 );
@@ -71,6 +71,7 @@ export interface Props extends React.HTMLAttributes<HTMLElement> {
   onRemoveUploadedFiles?: (file: FileWithUrl) => void;
   preventOpenFileDialog?: boolean;
   errorMesssage?: string;
+  'aria-label'?: string;
 }
 
 const FileInput = ({
@@ -85,6 +86,7 @@ const FileInput = ({
   previewMode = PreviewImageMode.Default,
   preventOpenFileDialog = false,
   errorMesssage,
+  'aria-label': ariaLabel,
 }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { files, handleFiles, removeFile } = useFileHandler({
@@ -125,11 +127,25 @@ const FileInput = ({
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (preventOpenFileDialog) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openFileDialog();
+    }
+  };
+
   const getRootProps = (props?: React.HTMLAttributes<HTMLDivElement>) => ({
     ...props,
     onClick: handleClick,
     onDrop: onDrop,
     onDragOver: onDragOver,
+    role: 'button',
+    tabIndex: 0,
+    onKeyDown: handleKeyDown,
+    'aria-label': ariaLabel || 'File upload',
+    'aria-disabled': preventOpenFileDialog,
+    className: 'w-max',
   });
 
   const getInputProps = (props?: React.InputHTMLAttributes<HTMLInputElement>) => ({
@@ -139,6 +155,7 @@ const FileInput = ({
     accept: acceptedType,
     multiple: maxFiles > 1,
     className: 'hidden',
+    'aria-hidden': true,
     ...props,
   });
 
@@ -147,7 +164,7 @@ const FileInput = ({
 
   if (children && !files.length) {
     return (
-      <div className={className} {...getRootProps()}>
+      <div {...getRootProps()} className={cn(getRootProps().className, className)}>
         <input {...getInputProps()} />
         {children}
       </div>
@@ -156,44 +173,44 @@ const FileInput = ({
 
   if (isCoverImage) {
     return (
-      <section className={className} {...getRootProps()}>
+      <div {...getRootProps()} className={cn(getRootProps().className, className)}>
         <input {...getInputProps()} />
-
-        <div>
-          {cloneElement(
-            children as unknown as ReactElement,
-            {
-              className: cn(
-                (children as unknown as ReactElement).props?.className,
-                'relative overflow-hidden border-none'
-              ),
-            },
-            <Image src={files[0]?.preview || ''} className="absolute inset-0 box-border" alt="Preview" fill />
-          )}
-        </div>
-        {errorMesssage && <ErrorMessage errorMesssage={errorMesssage} />}
-      </section>
+        {cloneElement(
+          children as unknown as ReactElement,
+          {
+            className: cn(
+              (children as unknown as ReactElement).props?.className,
+              'relative overflow-hidden border-none'
+            ),
+          },
+          <Image src={files[0]?.preview || ''} className="absolute inset-0 box-border" alt="Preview" fill />
+        )}
+        {errorMesssage && <ErrorMessage errorMesssage={errorMesssage} id="file-input-error" />}
+      </div>
     );
   }
 
   const renderFiles = (
     <section className="flex w-full flex-col space-y-2">
       {files.map((file, index) => (
-        <div key={`${file?.name} - ${index}`} className="flex items-center justify-between text-left">
+        <div key={`${file?.name}-${index}`} className="flex items-center justify-between text-left">
           <div className="flex items-center">
             {ICONS[acceptedType]}
             <p className="overflow-hidden text-clip"> {firstNChars(file?.name, 40)}</p>
           </div>
           <div className="flex w-fit items-center">
             <span>{bytesToMB(file?.size)} MB</span>
-            <CircleX
+            <button
+              type="button"
               className="ml-2 cursor-pointer"
-              onClick={async (event) => {
+              onClick={(event) => {
                 event.stopPropagation();
-                removeFile(0);
+                removeFile(index);
               }}
-              size={20}
-            />
+              aria-label="Remove file"
+            >
+              <CircleX size={20} />
+            </button>
           </div>
         </div>
       ))}
@@ -203,26 +220,28 @@ const FileInput = ({
   return (
     <div className="flex w-full flex-col space-y-2">
       <div
-        {...getRootProps({ onClick: handleClick })}
+        {...getRootProps({
+          onClick: handleClick,
+          'aria-describedby': errorMesssage ? 'file-input-error' : undefined,
+        })}
         className={cn(
-          `flex min-h-8 w-full cursor-pointer items-center justify-center rounded-lg border border-dashed px-4 py-1 text-center text-sm transition-colors`,
+          `flex min-h-8 w-full cursor-pointer items-center justify-center rounded-lg border border-dashed px-4 py-1 text-center text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`,
           files && `text-text-body-200-color hover:border-accent-100 border-solid hover:text-white`,
           preventOpenFileDialog && 'cursor-default',
           className
         )}
       >
-        {!files && (
+        {!files.length && (
           <>
             <input {...getInputProps()} />
-            size={20}
             <CirclePlus className="mr-2" size={20} />
             <p className="text-sm">Add file</p>
           </>
         )}
-        {files && <>{renderFiles}</>}
+        {files.length > 0 && <>{renderFiles}</>}
       </div>
 
-      {errorMesssage && <ErrorMessage errorMesssage={errorMesssage} />}
+      {errorMesssage && <ErrorMessage errorMesssage={errorMesssage} id="file-input-error" />}
     </div>
   );
 };
