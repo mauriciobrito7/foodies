@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 export default async function MealPage({ params }: { params: Promise<{ slug: string }> }) {
   const slug = (await params).slug;
   const meal = await getMeal(slug);
-  const parsedIntructions = meal.instructions.split('\n').map((instruction) => instruction.trim());
+  const parsedIntructions: string[] = meal.instructions.split('\n').map((instruction: string) => instruction.trim());
 
   if (!meal) {
     notFound();
